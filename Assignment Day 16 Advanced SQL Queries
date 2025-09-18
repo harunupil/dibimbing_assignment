@@ -1,0 +1,79 @@
+Soal 1 : The Report
+Query :
+
+Select 
+    CASE 
+      WHEN g.Grade < 8 THEN 'NULL'
+      ELSE s.Name
+    END AS Name,
+    g.Grade AS Grade,
+    s.Marks AS Mark
+From Students s
+Join Grades g ON s.Marks Between g.Min_Mark AND g.Max_Mark
+ORDER BY 2 DESC, CASE WHEN g.grade >= 8 THEN s.name END ASC, CASE WHEN g.grade < 8 THEN s.marks END ASC;
+
+Soal 2 : Weather Observation Station 18
+Query : 
+
+SELECT
+    CAST((ABS(MAX(LONG_W)-MIN(LONG_W)) + ABS(MAX(LAT_N)-MIN(LAT_N))) AS DECIMAL(10,4))
+FROM STATION;
+
+Soal 3 : Top Competitors
+Query : 
+
+Select 
+  h.hacker_id, 
+  h.name
+From Submissions s
+Join Hackers h on s.hacker_id = h.hacker_id
+Join Challenges c on s.challenge_id = c.challenge_id
+Join Difficulty d on c.difficulty_level = d.difficulty_level 
+Where s.score = d.score and c.difficulty_level = d.difficulty_level
+Group By h.hacker_id, h.name
+Having Count(s.hacker_id) > 1
+Order By Count(s.hacker_id) DESC, h.hacker_id ASC;
+
+Soal 4 : Ollivander's Inventory
+Query : 
+
+SELECT 
+  id,
+  age,
+  coins_needed,
+  power
+FROM (
+    SELECT
+        w.id,
+        wp.age,
+        w.coins_needed,
+        w.power,
+        MIN(w.coins_needed) OVER (PARTITION BY w.power, wp.age) as min_coins_needed
+    FROM Wands w
+    JOIN Wands_Property wp ON w.code = wp.code
+    WHERE wp.is_evil = 0
+) AS Subquery
+WHERE coins_needed = min_coins_needed
+ORDER BY power DESC, age DESC;
+
+
+Soal 5 : Contest Leaderboard
+Query :
+
+SELECT 
+ h.hacker_id, 
+ h.name, 
+ SUM(score) 
+FROM (
+    SELECT 
+     hacker_id, 
+     challenge_id, 
+     MAX(score) AS score 
+    FROM SUBMISSIONS
+    GROUP BY hacker_id, challenge_id
+) max_score
+JOIN Hackers h on max_score.hacker_id = h.hacker_id
+GROUP BY h.hacker_id, h.name
+HAVING SUM(score) > 0
+ORDER BY SUM(score) desc, h.hacker_id;
+
